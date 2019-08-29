@@ -39,8 +39,7 @@ const gameStates =
 {
     PLAY:  0,
     PAUSE: 1,
-    WIN:   2,
-    LOSE:  3
+    NEXT:  2,
 };
 
 var state = gameStates.PLAY;
@@ -83,15 +82,21 @@ document.onkeyup = function(event)
                     if(isSolved())
                     {
                         wins++;
-                        state = gameStates.WIN;
+                        document.getElementById("win").play();
+                        state = gameStates.NEXT;
                         msgText = gameMessages.WIN;
                         updatePageText();
+                    }
+                    else
+                    {
+                        document.getElementById("hit").play();
                     }
                 }
                 //User guessed a letter not in the phrase.
                 else
                 {
                     guesses--;
+                    document.getElementById("miss").play();
                     state = gameStates.PAUSE;
                     msgText = gameMessages.PAUSE;
                     updatePageText();
@@ -105,15 +110,10 @@ document.onkeyup = function(event)
             //Nothing to process. Ignore the input.
             break;
 
-        case gameStates.WIN:
+        case gameStates.NEXT:
             //Start new game after any key pressed.
             state = gameStates.PLAY;
-            newMatch();
-            break;
-
-        case gameStates.LOSE:
-            //Start new game after any key pressed.
-            state = gameStates.PLAY;
+            stopAudio();
             newMatch();
             break;
 
@@ -123,40 +123,6 @@ document.onkeyup = function(event)
             break;
     }
 };
-
-//This function fades in the hangman guy.
-function animate()
-{
-    
-    if(animOpacity >= 1)
-    {
-        //Make sure image is full opaque.
-        document.getElementById("img-hangman" + (10 - guesses)).style.opacity = 1;
-
-        //Animation done.  Check what to do next.
-        clearInterval(doAnimation);
-        if(!guesses)
-        {
-            //Player lost.
-            state = gameStates.LOSE;
-            msgText = gameMessages.LOSE;
-            losses++;
-        }
-        else
-        {
-            //Game still going.
-            state = gameStates.PLAY;
-            msgText = gameMessages.PLAY;
-        }
-        updatePageText();
-    }
-    else
-    {
-        //Keep animating.
-        document.getElementById("img-hangman" + (10 - guesses)).style.opacity = animOpacity;
-        animOpacity += .05;
-    }
-}
 
 //Checks to see if the player won.
 function isSolved()
@@ -270,6 +236,26 @@ function initPhrase()
     if(debug)console.log(userPhrases[phraseIndex]);
 }
 
+//Stop any playing audio.
+function stopAudio()
+{
+    var lose = document.getElementById("lose");
+    lose.pause();
+    lose.currentTime = 0;
+
+    var win = document.getElementById("win");
+    win.pause();
+    win.currentTime = 0;
+
+    var hit = document.getElementById("hit");
+    hit.pause();
+    hit.currentTime = 0;
+
+    var miss = document.getElementById("miss");
+    miss.pause();
+    miss.currentTime = 0;
+}
+
 /*********************************** Website Display Functions ***********************************/
 
 function updatePageText()
@@ -289,6 +275,41 @@ function resize()
     var bkgHeightWidth = imgBackground.clientHeight;
     var imgContainer = document.getElementById("img-container");
     imgContainer.style.minHeight = bkgHeightWidth + "px";
+}
+
+//This function fades in the hangman guy.
+function animate()
+{
+    
+    if(animOpacity >= 1)
+    {
+        //Make sure image is full opaque.
+        document.getElementById("img-hangman" + (10 - guesses)).style.opacity = 1;
+
+        //Animation done.  Check what to do next.
+        clearInterval(doAnimation);
+        if(!guesses)
+        {
+            //Player lost.
+            state = gameStates.NEXT;
+            msgText = gameMessages.LOSE;
+            losses++;
+            document.getElementById("lose").play();
+        }
+        else
+        {
+            //Game still going.
+            state = gameStates.PLAY;
+            msgText = gameMessages.PLAY;
+        }
+        updatePageText();
+    }
+    else
+    {
+        //Keep animating.
+        document.getElementById("img-hangman" + (10 - guesses)).style.opacity = animOpacity;
+        animOpacity += .05;
+    }
 }
 
 /*********************************** Game Initialize And Reset ***********************************/
