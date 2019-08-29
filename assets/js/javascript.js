@@ -1,14 +1,21 @@
 //Debug variable.
-var debug = true;
+var debug = false;
 
 //A list of basic words that are used if a file is not loaded.
 var defaultPhrases =
 [
-    "tiger cub",      "bottlenose dolphin",   "giraffe neck",    "elephant tusk",
-    "kangaroo pouch", "rabbit skin",          "aardvark snout",  "wolverine", 
-    "koala",          "alligator skin boots", "crocodile teeth", "balloon", 
-    "hammer",         "basketball",           "soccer",          "trousers",
-    "flower petals",  "castle",               "apartment",       "computer monitor"
+    "tiger",      "dolphin",     "giraffe",        "elephant",    "competition",
+    "kangaroo",   "rabbit",      "aardvark",       "wolverine",   "connection",
+    "hamburger",  "alligator",   "crocodile",      "balloon",     "destruction",
+    "hammer",     "basketball",  "football",       "trousers",    "distribution",
+    "flower",     "apartment",   "computer",       "fantastic",   "education",
+    "attention",  "beautiful",   "building",       "business",    "existence",
+    "experience", "feather",     "foolish",        "frequent",    "government",
+    "harmony",    "important",   "instrument",     "invention",   "journey",
+    "knowledge",  "learning",    "leather",        "manager",     "military",
+    "necessary",  "observation", "organization",   "parallel",    "position",
+    "potato",     "punishment",  "representative", "responsible", "scissors",
+    "selection",  "statement",   "thought",        "transport",   "yesterday",
 ];
 
 var userPhrases = [];
@@ -236,26 +243,6 @@ function initPhrase()
     if(debug)console.log(userPhrases[phraseIndex]);
 }
 
-//Stop any playing audio.
-function stopAudio()
-{
-    var lose = document.getElementById("lose");
-    lose.pause();
-    lose.currentTime = 0;
-
-    var win = document.getElementById("win");
-    win.pause();
-    win.currentTime = 0;
-
-    var hit = document.getElementById("hit");
-    hit.pause();
-    hit.currentTime = 0;
-
-    var miss = document.getElementById("miss");
-    miss.pause();
-    miss.currentTime = 0;
-}
-
 /*********************************** Website Display Functions ***********************************/
 
 function updatePageText()
@@ -295,14 +282,16 @@ function animate()
             msgText = gameMessages.LOSE;
             losses++;
             document.getElementById("lose").play();
+            updatePageText();
+            document.getElementById("phrase").innerHTML = userPhrases[phraseIndex];
         }
         else
         {
             //Game still going.
             state = gameStates.PLAY;
             msgText = gameMessages.PLAY;
+            updatePageText();
         }
-        updatePageText();
     }
     else
     {
@@ -356,6 +345,26 @@ function newMatch()
 
     //Update the layout.
     resize();  
+}
+
+//Stop any playing audio.
+function stopAudio()
+{
+    var lose = document.getElementById("lose");
+    lose.pause();
+    lose.currentTime = 0;
+
+    var win = document.getElementById("win");
+    win.pause();
+    win.currentTime = 0;
+
+    var hit = document.getElementById("hit");
+    hit.pause();
+    hit.currentTime = 0;
+
+    var miss = document.getElementById("miss");
+    miss.pause();
+    miss.currentTime = 0;
 }
 
 /***************************************** File Parsing ******************************************/

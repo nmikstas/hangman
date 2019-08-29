@@ -6,7 +6,7 @@
 // slashes can be used to comment the file.
 // Entries are separated by new lines.  Also, new
 // lines can be used for formatting.  Leading
-// and trailing whites paces are removed.
+// and trailing white spaces are removed.
 
 the cat is out of the bag
 one in the hand is worth two in the bush
