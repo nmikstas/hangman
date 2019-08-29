@@ -1,3 +1,5 @@
+//Debug variable.
+var debug = true;
 
 //A list of basic words that are used if a file is not loaded.
 var defaultPhrases =
@@ -15,9 +17,21 @@ var userPhrases = [];
 const gameMessages =
 {
     PLAY: "Press a letter key to make a guess",
-    PAUSE: " ",
+    PAUSE: "Oh no! That letter is not present",
     WIN: "You win! Press any key to play again",
-    LOSE: "You lose! Press any key to play again"
+    LOSE: "You lose! Press any key to play again",
+    TRYAGAIN: "Letter already chosen! Try again"
+};
+
+//Index into array above.
+var msgText = "";
+
+//Results of an updatePhrase function call.
+const updateCode =
+{
+    HIT:  0, //User guessed a letter in the phrase.
+    MISS: 1, //User guessed a letter not in the phrase.
+    PUSH: 2  //User already tried this letter.
 };
 
 //Gate state enumeration.
@@ -31,21 +45,60 @@ const gameStates =
 
 var state = gameStates.PLAY;
 var phraseIndex = 0;
+var guesses = 10;
 var wins = 0;
 var losses = 0;
 var phrase = "";
-var misses = "";
-var hits = "";
+var misses = [];
+var hits = [];
+
+//Animation variables.
+var doAnimation;
+var animOpacity = 0;
 
 //Set up key listener.
 document.onkeyup = function(event)
 {
-    var key = event.key;
+    var key = event.key.toLocaleLowerCase();
 
     switch(state)
     {
         case gameStates.PLAY:
-            
+            //Only accept alphabetic characters.
+            if(key.match(/[a-z]/i) && key.length == 1)
+            {
+                var status = updatePhrase(key);
+
+                //Update message if user already picked this letter.
+                if(status == updateCode.PUSH)
+                {
+                    msgText = gameMessages.TRYAGAIN;
+                    updatePageText();
+                }
+                //User guessed a letter in the phrase.
+                else if(status == updateCode.HIT)
+                {
+                    msgText = gameMessages.PLAY;
+                    updatePageText();
+                    if(isSolved())
+                    {
+                        wins++;
+                        state = gameStates.WIN;
+                        msgText = gameMessages.WIN;
+                        updatePageText();
+                    }
+                }
+                //User guessed a letter not in the phrase.
+                else
+                {
+                    guesses--;
+                    state = gameStates.PAUSE;
+                    msgText = gameMessages.PAUSE;
+                    updatePageText();
+                    animOpacity = 0;
+                    doAnimation = setInterval(animate, 50);
+                }
+            }
             break;
 
         case gameStates.PAUSE:
@@ -53,9 +106,15 @@ document.onkeyup = function(event)
             break;
 
         case gameStates.WIN:
+            //Start new game after any key pressed.
+            state = gameStates.PLAY;
+            newMatch();
             break;
 
         case gameStates.LOSE:
+            //Start new game after any key pressed.
+            state = gameStates.PLAY;
+            newMatch();
             break;
 
         //Reset game if something goes wrong.
@@ -65,14 +124,134 @@ document.onkeyup = function(event)
     }
 };
 
-function displayPhrase()
+//This function fades in the hangman guy.
+function animate()
 {
-    document.getElementById("phrase").innerHTML = phrase;
+    
+    if(animOpacity >= 1)
+    {
+        //Make sure image is full opaque.
+        document.getElementById("img-hangman" + (10 - guesses)).style.opacity = 1;
+
+        //Animation done.  Check what to do next.
+        clearInterval(doAnimation);
+        if(!guesses)
+        {
+            //Player lost.
+            state = gameStates.LOSE;
+            msgText = gameMessages.LOSE;
+            losses++;
+        }
+        else
+        {
+            //Game still going.
+            state = gameStates.PLAY;
+            msgText = gameMessages.PLAY;
+        }
+        updatePageText();
+    }
+    else
+    {
+        //Keep animating.
+        document.getElementById("img-hangman" + (10 - guesses)).style.opacity = animOpacity;
+        animOpacity += .05;
+    }
 }
 
-function updatePhrase()
+//Checks to see if the player won.
+function isSolved()
 {
+    var solved = true;
 
+    //Loop through the phrases array and check if there are any more dashes.
+    for(let i = 0; i < phrase.length; i++)
+    {
+        if(phrase[i] === '-')
+        {
+            solved = false;
+        }
+    }
+
+    return solved;
+}
+
+//Update the phrase after a user guesses a letter.
+function updatePhrase(character)
+{
+    var isCharPresent = false;
+
+    //Check to make sure the letter has not already been chosen and in the misses array.
+    for(let i = 0; i < misses.length; i++)
+    {
+        if(misses[i] == character)
+        {
+            return updateCode.PUSH;
+        }
+    }
+
+    //Check to make sure the letter has not already been chosen and in the hits array.
+    for(let i = 0; i < hits.length; i++)
+    {
+        if(hits[i] == character)
+        {
+            return updateCode.PUSH;
+        }
+    }
+
+    for(let i = 0; i < phrase.length; i++)
+    {
+        //Replace dashes in phrase string if character is present.
+        if(userPhrases[phraseIndex][i] == character)
+        {
+            isCharPresent = true;
+            phrase = phrase.substr(0, i) + character + phrase.substr(i + 1);            
+        }
+    }
+
+    if(isCharPresent)
+    {
+        //Add character to hit array.
+        hits.push(character);
+        msgText = gameMessages.PLAY;
+        updatePageText();
+        return updateCode.HIT;
+    }
+    else
+    {
+        //Add character to miss array.
+        misses.push(character);
+        return updateCode.MISS;
+    }
+}
+
+//Check if character is in the misses array.
+function isMissed(character)
+{
+    var isPresent = false;
+
+    for(let i = 0; i < misses.length; i++)
+    {
+        if(misses[i] == character)
+        {
+            isPresent = true;
+        }
+    }
+    return isPresent;
+}
+
+//Check if character is in the hits array.
+function isHit(character)
+{
+    var isPresent = false;
+
+    for(let i = 0; i < hits.length; i++)
+    {
+        if(hits[i] == character)
+        {
+            isPresent = true;
+        }
+    }
+    return isPresent;
 }
 
 function initPhrase()
@@ -88,28 +267,60 @@ function initPhrase()
             phrase = phrase.concat("-");
         }
     }
-    console.log(phrase);
-    console.log(userPhrases[phraseIndex]);
+    if(debug)console.log(userPhrases[phraseIndex]);
 }
+
+/*********************************** Website Display Functions ***********************************/
+
+function updatePageText()
+{
+    document.getElementById('status').innerHTML = msgText;
+    document.getElementById("phrase").innerHTML = phrase;
+    document.getElementById("used-letters").innerHTML = "Letters used: " + misses;
+    document.getElementById("guesses-left").innerHTML = "Guesses left: " + guesses;
+    document.getElementById("wins").innerHTML = "Wins: " + wins;
+    document.getElementById("losses").innerHTML = "Losses: " + losses;
+}
+
+//This is required to make the website look right with the xs media query.
+function resize()
+{
+    var imgBackground = document.getElementById("img-hangman0");
+    var bkgHeightWidth = imgBackground.clientHeight;
+    var imgContainer = document.getElementById("img-container");
+    imgContainer.style.minHeight = bkgHeightWidth + "px";
+}
+
+/*********************************** Game Initialize And Reset ***********************************/
 
 function init()
 {
     //Reset and log the user phrases to the default.
     userPhrases = defaultPhrases;
-    console.log(userPhrases);
+    if(debug)console.log(userPhrases);
+
+    //Reset the game variables.
+    
+    wins = 0;
+    losses = 0;
+
+    //Clear the user selected file box.
+    document.getElementById('file-input').value = '';
+
+    newMatch();
+}
+
+function newMatch()
+{
+    state = gameStates.PLAY;
+    guesses = 10;
+    phrase = "";
+    misses = [];
+    hits = [];
 
     //Randomly choose a phrase.
     phraseIndex = Math.floor(Math.random() * userPhrases.length);
     initPhrase();
-    displayPhrase();
-
-    //Reset the game variables.
-    state = gameStates.PLAY;
-    wins = 0;
-    losses = 0;
-    phrase = "";
-    misses = "";
-    hits = "";
 
     //Reset the opacity of the images.
     document.getElementById("img-hangman0").style.opacity = 1;
@@ -118,35 +329,28 @@ function init()
         document.getElementById("img-hangman" + i).style.opacity = 0;
     }
 
-    //Clear the user selected file box.
-    document.getElementById('file-input').value = ''
-
     //Set the default message in the status box.
-    document.getElementById('status').innerHTML = gameMessages.PLAY;
+    msgText = gameMessages.PLAY;
+    updatePageText();
 
     //Update the layout.
     resize();  
 }
 
-function resize()
-{
-    //This is required to make the website look right with the xs media query.
-    var imgBackground = document.getElementById("img-hangman0");
-    var bkgHeightWidth = imgBackground.clientHeight;
-    var imgContainer = document.getElementById("img-container");
-    imgContainer.style.minHeight = bkgHeightWidth + "px";
-}
+/***************************************** File Parsing ******************************************/
 
 //Takes the user supplied file and validates each phrase.
 var openFile = function(event)
 {
     var input = event.target;
     var reader = new FileReader();
-    userPhrases = [];
 
     //Read the contents of the file uploaded by the user.
     reader.onload = function()
     {
+        //Clear out old phrases.
+        userPhrases = [];
+
         //Get the contents of the file.
         var text = reader.result;
 
@@ -163,12 +367,12 @@ var openFile = function(event)
             //Log commented lines.
             if(line[0] === '/' && line[1] === '/')
             {
-                console.log("*** Comment at line " + index + 1 +" ***");
+                if(debug)console.log("*** Comment at line " + index + 1 +" ***");
             }
             //Log blank lines.
             else if(line === "")
             {
-                console.log("*** Blank at line " + index + 1 +" ***");
+                if(debug)console.log("*** Blank at line " + index + 1 +" ***");
             }
             else
             {
@@ -184,12 +388,12 @@ var openFile = function(event)
 
                 if(isValidPhrase)
                 {
-                    console.log(line + " ---Valid---");
+                    if(debug)console.log(line + " ---Valid---");
                     userPhrases.push(line.toLowerCase());
                 }
                 else
                 {
-                    console.log(line + " !!!INVALID!!!");
+                    if(debug)console.log(line + " !!!INVALID!!!");
                 }
             }
         }
@@ -203,9 +407,11 @@ var openFile = function(event)
             document.getElementById('file-input').value = '';
         }
 
-        console.log(userPhrases);  
+        if(debug)console.log(userPhrases);  
+        
+        //Start a new match once file is loaded.
+        newMatch();
     };
 
     reader.readAsText(input.files[0]);
-    init();
 };
