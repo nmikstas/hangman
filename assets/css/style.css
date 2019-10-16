@@ -1,6 +1,9 @@
 body, html
 {
     height: 100%;
+    background-image: url("../images/noisy_net.png");
+    overflow-x: hidden;
+    font-size: 16px;
 }
 
 h2
@@ -41,7 +44,6 @@ p
 
 #page-body
 {
-    background-image: url("../images/mosaic.png");
     flex: 1 0 auto;
 }
 
@@ -53,23 +55,6 @@ p
 #file
 {
     border: 2px solid #666666;
-}
-
-#sticky-footer
-{
-    background-color: #666666;
-    border-top: 8px solid #4aaaa5;
-}
-
-.header-class
-{
-    font-family: Georgia, Times, serif;
-    text-align: center;
-    background-color: #4aaaa5;
-    color: #ffffff;
-    font-size: 30px;
-    border-bottom: 3px solid #666666;
-    padding: 20px 0px;
 }
 
 .select-btn
@@ -93,4 +78,45 @@ p
 .img-item
 {
     position: absolute;
+}
+
+/******************************************** Header *********************************************/
+.header-class
+{
+    font-family: Georgia, Times, serif;
+    text-align: center;
+    background-color: rgba(30, 47, 126, 0.3);
+    color: #ffffff;
+    font-size: 30px;
+    border-bottom: 3px solid #666666;
+    padding: 20px 0px;
+}
+
+.nav-link
+{
+    font-family:  sans-serif;
+    font-size:    20px;
+}
+
+.nav-title
+{
+    height: 100%;
+    font-family: sans-serif;
+    font-size: 30px;
+    color: #ffffff;
+}
+
+.nav-title:hover,
+.nav-link:hover
+{
+    background-color:  rgba(30, 47, 126, 1);
+    border-radius: 5px;
+}
+
+/******************************************** Footer *********************************************/
+footer
+{
+    border-top: 1px solid #666666;
+    background-color: rgba(30, 47, 126, 0.3);
+    color: #ffffff;
 }

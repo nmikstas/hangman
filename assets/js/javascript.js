@@ -1,5 +1,5 @@
 //Debug variable.
-var debug = false;
+var debug = true;
 
 //A list of basic words that are used if a file is not loaded.
 var defaultPhrases =
@@ -227,6 +227,7 @@ function isHit(character)
     return isPresent;
 }
 
+//Initialize the phrase with dashes and spaces.
 function initPhrase()
 {
     for(let i = 0; i < userPhrases[phraseIndex].length; i++)
@@ -391,7 +392,7 @@ var openFile = function(event)
         text.forEach(readLines);
         function readLines(line, index)
         {
-            //Trim whitespaces of the front and end.
+            //Trim whitespaces off the front and end.
             line = line.trim();
 
             //Log commented lines.
